@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>제주 미세먼지</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="top">
+    <h1>제주 미세먼지</h1>
+    <p class="sub">공공데이터(에어코리아) → FastAPI 가공 → Supabase 저장 → 이 화면은 결과만 보여 줍니다</p>
+  </header>
+
+  <main>
+    <div id="notice" class="notice" hidden></div>
+
+    <section id="summary" class="summary" aria-live="polite">
+      <div class="card big">
+        <span class="label">제주 평균 PM10</span>
+        <strong id="avg10" class="num">-</strong>
+        <span id="avg10grade"></span>
+      </div>
+      <div class="card">
+        <span class="label">평균 PM2.5</span>
+        <strong id="avg25" class="num small">-</strong>
+      </div>
+      <div class="card">
+        <span class="label">측정소</span>
+        <strong id="stations" class="num small">-</strong>
+      </div>
+      <div class="card">
+        <span class="label">가장 높은 곳</span>
+        <strong id="worst" class="num small">-</strong>
+      </div>
+    </section>
+
+    <section class="table-wrap">
+      <div class="table-head">
+        <h2>측정소별 최신 값 <small>(나쁜 순)</small></h2>
+        <button id="refresh" type="button">새로고침</button>
+      </div>
+      <table>
+        <thead>
+          <tr><th>측정소</th><th>시각</th><th>PM10</th><th>PM2.5</th><th>예측</th></tr>
+        </thead>
+        <tbody id="rows"><tr><td colspan="5" class="empty">불러오는 중…</td></tr></tbody>
+      </table>
+    </section>
+
+    <section id="prediction" class="prediction" hidden aria-live="polite"></section>
+
+    <p id="meta" class="meta"></p>
+  </main>
+
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
