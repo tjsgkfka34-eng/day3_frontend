@@ -69,6 +69,25 @@ td .val { display: inline-block; min-width: 2ch; font-weight: 600; margin-right:
 .prediction svg .next { stroke: var(--accent); stroke-width: 2; stroke-dasharray: 4 3; fill: none; }
 .prediction svg circle { fill: var(--accent); }
 
+.map-wrap {
+  background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+  padding: 14px 16px; margin-bottom: 16px;
+}
+.map { height: 380px; margin-top: 10px; border-radius: 10px; z-index: 0; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; margin-top: 8px; font-size: .82rem; }
+.legend small { color: var(--muted); margin-left: auto; }
+.dot { display: inline-block; width: 11px; height: 11px; border-radius: 50%; margin-right: 5px; vertical-align: -1px; }
+.dot.good, .pin.good { background: var(--good); } .dot.ok, .pin.ok { background: var(--ok); }
+.dot.bad, .pin.bad { background: var(--bad); } .dot.worse, .pin.worse { background: var(--worse); }
+.dot.none, .pin.none { background: #8b97a6; }
+.pin {
+  display: flex; align-items: center; justify-content: center; width: 38px; height: 38px;
+  border-radius: 50%; color: #fff; font-weight: 700; font-size: .9rem;
+  border: 3px solid #fff; box-shadow: 0 1px 6px rgba(0,0,0,.4); transition: transform .2s;
+}
+.pin:hover, .pin.sel { transform: scale(1.2); }
+.pin.sel { outline: 3px solid var(--accent); }
+tr.hl td { background: rgba(47,111,237,.12); }
 .meta { color: var(--muted); font-size: .8rem; margin-top: 14px; }
 
 @media (max-width: 640px) {

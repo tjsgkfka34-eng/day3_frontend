@@ -5,6 +5,72 @@ const REFRESH_MS = 5 * 60 * 1000; // 5분마다 자동 새로고침
 
 const $ = (id) => document.getElementById(id);
 
+// 측정소 위치(읍·동 중심 기준 근사 좌표). 목록에 없는 측정소는 지도에서만 빠지고 표에는 그대로 나온다.
+const COORDS = {
+  제주항: [33.519, 126.533], 이도동: [33.4995, 126.5435], 연동: [33.489, 126.493],
+  노형로: [33.4845, 126.4775], 화북동: [33.526, 126.570], 조천읍: [33.534, 126.636],
+  한림읍: [33.413, 126.264], 애월읍: [33.462, 126.331], 고산리: [33.293, 126.163],
+  대정읍: [33.223, 126.253], 강정동: [33.242, 126.478], 동홍동: [33.260, 126.580],
+  남원읍: [33.279, 126.717], 성산읍: [33.435, 126.922],
+};
+
+// ───────────── 지도 (Leaflet + OpenStreetMap, 키 필요 없음)
+let map = null;
+let markerLayer = null;
+const markers = {};
+let selected = null;
+
+function initMap() {
+  if (!window.L) { document.querySelector(".map-wrap").hidden = true; return; }
+  map = L.map("map", { scrollWheelZoom: false }).setView([33.38, 126.55], 10);
+  L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    maxZoom: 18,
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+  }).addTo(map);
+  markerLayer = L.layerGroup().addTo(map);
+}
+
+function pinIcon(r, isSel) {
+  const el = document.createElement("div");
+  el.className = "pin " + (GRADE_CLASS[r.pm10_grade] || "none") + (isSel ? " sel" : "");
+  el.textContent = r.pm10 ?? "-";
+  return L.divIcon({ html: el, className: "", iconSize: [38, 38], iconAnchor: [19, 19] });
+}
+
+function renderMap(rows) {
+  if (!map) return;
+  markerLayer.clearLayers();
+  for (const k of Object.keys(markers)) delete markers[k];
+  for (const r of rows) {
+    const pos = COORDS[r.station];
+    if (!pos) continue;
+    const m = L.marker(pos, { icon: pinIcon(r, r.station === selected), title: r.station, keyboard: true });
+    const tip = document.createElement("div");
+    const nm = document.createElement("b"); nm.textContent = r.station;
+    tip.append(nm, document.createElement("br"),
+      document.createTextNode("PM10 " + (r.pm10 ?? "-") + " · PM2.5 " + (r.pm25 ?? "-")));
+    m.bindTooltip(tip, { direction: "top", offset: [0, -18] });
+    m.on("click", () => selectStation(r.station));
+    m.addTo(markerLayer);
+    markers[r.station] = { marker: m, row: r };
+  }
+}
+
+// 지도·표 어느 쪽을 눌러도 같은 측정소가 선택되고 예측이 나온다
+function selectStation(station, fromTable) {
+  const prev = selected;
+  selected = station;
+  for (const s of [prev, station]) {
+    const it = s && markers[s];
+    if (it) it.marker.setIcon(pinIcon(it.row, s === selected));
+  }
+  document.querySelectorAll("#rows tr").forEach((tr) =>
+    tr.classList.toggle("hl", tr.dataset.station === station));
+  const it = markers[station];
+  if (it && map && fromTable) map.flyTo(it.marker.getLatLng(), 12, { duration: 0.8 });
+  predict(station, null);
+}
+
 function badge(grade) {
   const el = document.createElement("span");
   if (!grade) { el.textContent = "-"; return el; }
@@ -77,7 +143,9 @@ function renderRows(rows) {
     const act = document.createElement("td");
     const btn = document.createElement("button");
     btn.type = "button"; btn.textContent = "1시간 뒤?";
-    btn.addEventListener("click", () => predict(r.station, btn));
+    btn.addEventListener("click", () => selectStation(r.station, true));
+    tr.dataset.station = r.station;
+    if (r.station === selected) tr.classList.add("hl");
     act.append(btn);
     tr.append(name, time, valueCell(r.pm10, r.pm10_grade), valueCell(r.pm25, r.pm25_grade), act);
     body.append(tr);
@@ -111,7 +179,7 @@ function sparkline(recent, next) {
 
 async function predict(station, btn) {
   const box = $("prediction");
-  btn.disabled = true;
+  if (btn) btn.disabled = true;
   try {
     const p = await getJson("/air/predict?station=" + encodeURIComponent(station));
     box.replaceChildren();
@@ -142,7 +210,7 @@ async function predict(station, btn) {
   } catch (e) {
     showNotice("예측 실패: " + e.message, true);
   } finally {
-    btn.disabled = false;
+    if (btn) btn.disabled = false;
   }
 }
 
@@ -153,6 +221,7 @@ async function load() {
     const [summary, latest] = await Promise.all([getJson("/air/summary"), getJson("/air/latest")]);
     renderSummary(summary);
     renderRows(latest);
+    renderMap(latest);
   } catch (e) {
     showNotice("서버에 연결하지 못했습니다 (" + API + "): " + e.message, true);
     $("rows").innerHTML = '<tr><td colspan="5" class="empty">데이터를 불러오지 못했습니다.</td></tr>';
@@ -162,5 +231,6 @@ async function load() {
 }
 
 $("refresh").addEventListener("click", load);
+initMap();
 load();
 setInterval(load, REFRESH_MS);

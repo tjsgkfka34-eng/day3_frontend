@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>제주 미세먼지</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -35,6 +36,20 @@
       </div>
     </section>
 
+    <section class="map-wrap">
+      <div class="table-head">
+        <h2>지도로 보기 <small>(동그라미를 누르면 1시간 뒤 예측)</small></h2>
+      </div>
+      <div id="map" class="map" role="application" aria-label="제주 측정소 지도"></div>
+      <div class="legend" aria-label="등급 범례">
+        <span><i class="dot good"></i>좋음 ~30</span>
+        <span><i class="dot ok"></i>보통 ~80</span>
+        <span><i class="dot bad"></i>나쁨 ~150</span>
+        <span><i class="dot worse"></i>매우나쁨</span>
+        <small>PM10 기준 · 위치는 읍·동 중심의 근사 좌표</small>
+      </div>
+    </section>
+
     <section class="table-wrap">
       <div class="table-head">
         <h2>측정소별 최신 값 <small>(나쁜 순)</small></h2>
@@ -53,6 +68,7 @@
     <p id="meta" class="meta"></p>
   </main>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
   <script src="config.js"></script>
   <script src="app.js"></script>
 </body>
